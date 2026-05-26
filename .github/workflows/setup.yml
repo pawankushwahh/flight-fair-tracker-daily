@@ -1,0 +1,34 @@
+name: One-Time Setup — Discover Route Airlines
+
+on:
+  # Only runs when manually triggered
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Discover Airlines Per Route
+    runs-on: ubuntu-latest
+    timeout-minutes: 360   # setup scrapes all 110 routes
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright supabase python-dotenv
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run setup script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          cd scripts
+          python setup.py
