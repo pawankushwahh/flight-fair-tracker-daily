@@ -174,7 +174,21 @@ def normalize_airline(raw_text):
     return None
 
 
+# def is_valid_card(card_text):
+   
+    # times = RE_TIME.findall(card_text)
+    # if len(times) < 2:
+    #     return False
+    # if not RE_PRICE_INR.search(card_text):
+    #     return False
+    # if not RE_DURATION.search(card_text):
+    #     return False
+    # if RE_OVERNIGHT.search(card_text):
+    #     return False
+    # return True
+
 def is_valid_card(card_text):
+
     """
     Structural validation of a candidate flight card's text content.
 
@@ -190,6 +204,8 @@ def is_valid_card(card_text):
     Overnight/+1 arrivals are excluded per spec — they're typically long
     indirect routings or anomalous fares.
     """
+      
+
     times = RE_TIME.findall(card_text)
     if len(times) < 2:
         return False
@@ -198,6 +214,8 @@ def is_valid_card(card_text):
     if not RE_DURATION.search(card_text):
         return False
     if RE_OVERNIGHT.search(card_text):
+        return False
+    if re.search(r"round\s*trip", card_text, re.IGNORECASE):  # ← ADD THIS
         return False
     return True
 

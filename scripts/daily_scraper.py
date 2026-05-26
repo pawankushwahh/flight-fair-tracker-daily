@@ -153,7 +153,14 @@ def normalize_airline(raw_text: str) -> str | None:
 
 
 # ── Card validation ───────────────────────────────────────────────────────────
+# def is_valid_card(text: str) -> bool:
+  
+
+
+     
 def is_valid_card(text: str) -> bool:
+
+
     """
     Structural check before parsing. Rejects:
       - Cards with fewer than 2 times (no dep/arr pair)
@@ -169,7 +176,20 @@ def is_valid_card(text: str) -> bool:
         return False
     if RE_OVERNIGHT.search(text):
         return False
+    if re.search(r"round\s*trip", text, re.IGNORECASE):  # ← ADD THIS
+        return False
     return True
+
+
+    # if len(RE_TIME.findall(text)) < 2:
+    #     return False
+    # if not RE_PRICE_INR.search(text):
+    #     return False
+    # if not RE_DURATION.search(text):
+    #     return False
+    # if RE_OVERNIGHT.search(text):
+    #     return False
+    # return True
 
 
 # ── Parse card text → structured dict ────────────────────────────────────────
