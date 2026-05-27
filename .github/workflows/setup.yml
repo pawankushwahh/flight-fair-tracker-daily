@@ -1,34 +1,29 @@
-name: One-Time Setup — Discover Route Airlines
+name: Daily Flight Price Scraper
 
 on:
-  # Only runs when manually triggered
+  schedule:
+    - cron: '30 20 * * *'
   workflow_dispatch:
 
 jobs:
-  setup:
-    name: Discover Airlines Per Route
+  scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 360   # setup scrapes all 110 routes
+    timeout-minutes: 350    # ~5h 50min, just under GitHub's 6h limit
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install playwright supabase python-dotenv
+          pip install -r scripts/requirements.txt
           playwright install chromium
-          playwright install-deps chromium
 
-      - name: Run setup script
+      - name: Run scraper
+        run: python scripts/daily_scraper.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: |
-          cd scripts
-          python setup.py
