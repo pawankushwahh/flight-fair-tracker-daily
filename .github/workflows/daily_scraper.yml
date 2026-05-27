@@ -2,53 +2,34 @@ name: Daily Flight Price Scraper
 
 on:
   schedule:
-    # Runs at 2:00 AM IST = 8:30 PM UTC (previous day)
-    # Google Flights prices are freshest in early morning
     - cron: '30 20 * * *'
-
-  # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Dry run (scrape but do not write to DB)'
-        required: false
-        default: 'false'
 
 jobs:
   scrape:
-    name: Scrape Flight Prices
+    strategy:
+      matrix:
+        batch: [0, 1, 2]
+      fail-fast: false
     runs-on: ubuntu-latest
-    timeout-minutes: 300   # 5-hour safety limit
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
-          pip install playwright supabase python-dotenv
+          pip install -r scripts/requirements.txt
           playwright install chromium
-          playwright install-deps chromium
 
-      - name: Run daily scraper
+      - name: Run scraper (batch ${{ matrix.batch }})
+        run: python scripts/daily_scraper.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-        run: |
-          cd scripts
-          python daily_scraper.py
-
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: scraper-logs-${{ github.run_id }}
-          path: scripts/*.log
-          retention-days: 7
+          BATCH_INDEX: ${{ matrix.batch }}
+          TOTAL_BATCHES: 3
